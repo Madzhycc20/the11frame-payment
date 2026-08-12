@@ -502,6 +502,47 @@ async function handleFormSubmit() {
 }
 
 // Generate Genuine QRIS Canvas
+async function loadScript(url, timeout = 8000) {
+  return new Promise((resolve, reject) => {
+    try {
+      const s = document.createElement('script');
+      s.src = url;
+      s.async = true;
+      const t = setTimeout(() => {
+        s.onerror = null;
+        s.onload = null;
+        reject(new Error('Timeout loading ' + url));
+      }, timeout);
+      s.onload = () => { clearTimeout(t); resolve(); };
+      s.onerror = (e) => { clearTimeout(t); reject(e || new Error('Failed to load ' + url)); };
+      document.head.appendChild(s);
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+async function ensureQrLib() {
+  if (typeof window === 'undefined') return false;
+  if (window.QRCode && typeof window.QRCode.toCanvas === 'function') return true;
+
+  const candidates = [
+    'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js',
+    'https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js'
+  ];
+
+  for (const url of candidates) {
+    try {
+      await loadScript(url, 6000);
+      if (window.QRCode && typeof window.QRCode.toCanvas === 'function') return true;
+    } catch (e) {
+      console.warn('QR lib load failed for', url, e && e.message);
+    }
+  }
+
+  return false;
+}
+
 async function generateQRISCode(tx) {
   const canvasEl = document.getElementById('qris-canvas');
   const imgFallback = document.getElementById('qris-image');
@@ -512,15 +553,21 @@ async function generateQRISCode(tx) {
 
   if (payloadEl) payloadEl.textContent = currentQRISPayload;
 
+  // Ensure QR library is available (attempt to load if missing)
+  const libReady = await ensureQrLib();
+
   try {
-    if (canvasEl) {
+    if (canvasEl && libReady) {
       const qrcodeLib = typeof window !== 'undefined' ? window.QRCode : null;
       if (!qrcodeLib || typeof qrcodeLib.toCanvas !== 'function') {
-        throw new Error('QR library unavailable');
+        throw new Error('QR library unavailable after loading attempts');
       }
 
       canvasEl.classList.remove('hidden');
       if (imgFallback) imgFallback.classList.add('hidden');
+
+      // Use a microtask to avoid blocking UI
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       await qrcodeLib.toCanvas(canvasEl, currentQRISPayload, {
         width: 240,
@@ -531,9 +578,13 @@ async function generateQRISCode(tx) {
         },
         errorCorrectionLevel: 'M'
       });
+      return;
     }
+
+    // If lib not ready or canvas missing, use fallback image
+    throw new Error('Canvas QR not used; falling back to image');
   } catch (err) {
-    console.error('Gagal membuat canvas QR Code:', err);
+    console.warn('Gagal membuat canvas QR Code (falling back to image):', err && err.message);
     if (imgFallback && canvasEl) {
       canvasEl.classList.add('hidden');
       imgFallback.classList.remove('hidden');
@@ -542,6 +593,11 @@ async function generateQRISCode(tx) {
     }
   }
 }
+      imgFallback.src = qrApiUrl;
+    }
+  }
+}
+
 
 // Copy QRIS String
 function copyQRISPayload() {

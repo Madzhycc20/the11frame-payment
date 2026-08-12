@@ -17,6 +17,15 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
+
+app.use((req, res, next) => {
+  const pathToCheck = String(req.path || '');
+  if (pathToCheck === '/node_modules' || pathToCheck.startsWith('/node_modules/')) {
+    return res.status(403).json({ ok: false, message: 'Akses ke folder dependency dilarang di browser.' });
+  }
+  next();
+});
+
 app.use(express.static(__dirname, { index: false }));
 
 function normalizeStatus(status) {

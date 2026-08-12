@@ -608,7 +608,8 @@
   </div>
 
   <!-- JavaScript App Script -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
-  <script src="./app.js" type="module"></script>
+  <!-- Load QR library locally from node_modules to work with file:// and local server -->
+  <script src="node_modules/qrcode/lib/browser.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
