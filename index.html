@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pembayaran QRIS DANA</title>
+  
+  <!-- Plus Jakarta Sans Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Header Banner -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-logo-group">
+          <div class="brand-logo-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <path d="M7 7h.01"/>
+              <path d="M17 7h.01"/>
+              <path d="M7 17h.01"/>
+              <path d="M12 7v10"/>
+              <path d="M7 12h10"/>
+            </svg>
+          </div>
+          <span class="app-title">Pembayaran QRIS</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" id="btn-admin-access" class="btn-admin-access">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span id="admin-header-label">Akses Web Admin</span>
+          </button>
+          <span class="dana-pill">DANA Payment</span>
+        </div>
+      </div>
+      <p class="app-subtitle">Transaksi cepat, aman, dan tercatat otomatis dengan Dynamic QRIS</p>
+    </header>
+
+    <!-- Main Card View Container -->
+    <main style="position: relative; z-index: 10;">
+      
+      <!-- Stepper Progress Bar -->
+      <div class="stepper" id="stepper">
+        <div class="step-item active" id="step-indicator-1">
+          <div class="step-circle">1</div>
+          <span class="step-label">Data</span>
+        </div>
+        <div class="step-item" id="step-indicator-2">
+          <div class="step-circle">2</div>
+          <span class="step-label">Scan QRIS</span>
+        </div>
+        <div class="step-item" id="step-indicator-3">
+          <div class="step-circle">3</div>
+          <span class="step-label">Selesai</span>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           HALAMAN 1: FORM PEMBAYARAN
+           ========================================== -->
+      <section id="page-step-1" class="card">
+        <h2 class="card-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Form Pembayaran QRIS
+        </h2>
+
+        <form id="payment-form" onsubmit="return false;">
+          
+          <!-- Input Nama Pembayar -->
+          <div class="form-group">
+            <label for="payer-name" class="form-label">Nama Pembayar <span style="color: var(--danger);">*</span></label>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <input 
+                type="text" 
+                id="payer-name" 
+                class="form-input" 
+                placeholder="Masukkan nama lengkap pembayar" 
+                autocomplete="name"
+                autocorrect="off"
+                autocapitalize="words"
+                spellcheck="false"
+                enterkeyhint="next"
+              />
+            </div>
+            <div id="name-error" class="error-message">Nama pembayar tidak boleh kosong.</div>
+          </div>
+
+          <!-- Input Total Dana -->
+          <div class="form-group">
+            <label for="payment-amount" class="form-label">Total Dana Pembayaran (Rp) <span style="color: var(--danger);">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-icon" style="font-weight: 700; font-size: 0.95rem;">Rp</span>
+              <input 
+                type="number" 
+                id="payment-amount" 
+                class="form-input" 
+                placeholder="Contoh: 50000" 
+                min="1000"
+                step="1000"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                enterkeyhint="done"
+              />
+            </div>
+            <div id="amount-error" class="error-message">Nominal harus berupa angka dan lebih besar dari 0.</div>
+
+            <!-- Quick Nominal Presets -->
+            <div style="margin-top: 12px;">
+              <span style="font-size: 0.775rem; color: var(--text-muted); font-weight: 600;">Pilihan Nominal Cepat:</span>
+              <div class="preset-grid">
+                <button type="button" class="btn-preset" onclick="setPresetAmount(10000)">Rp 10.000</button>
+                <button type="button" class="btn-preset" onclick="setPresetAmount(25000)">Rp 25.000</button>
+                <button type="button" class="btn-preset" onclick="setPresetAmount(50000)">Rp 50.000</button>
+                <button type="button" class="btn-preset" onclick="setPresetAmount(100000)">Rp 100.000</button>
+                <button type="button" class="btn-preset" onclick="setPresetAmount(250000)">Rp 250.000</button>
+                <button type="button" class="btn-preset" onclick="setPresetAmount(500000)">Rp 500.000</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol Lanjutkan -->
+          <button type="button" id="btn-continue" class="btn-primary" style="margin-top: 24px;">
+            <span>Lanjutkan Pembayaran</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"/>
+              <path d="m12 5 7 7-7 7"/>
+            </svg>
+          </button>
+
+        </form>
+      </section>
+
+      <!-- ==========================================
+           HALAMAN 2: HALAMAN QRIS DANA
+           ========================================== -->
+      <section id="page-step-2" class="card hidden">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <button type="button" id="btn-back" class="btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            Ubah Data
+          </button>
+          
+          <div class="qris-status-badge">
+            <span class="pulse-dot"></span>
+            <span>Menunggu Pembayaran</span>
+          </div>
+        </div>
+
+        <!-- Ringkasan Tagihan -->
+        <div class="payment-summary-box">
+          <div class="summary-row">
+            <span class="summary-label">Nama Pembayar:</span>
+            <span class="summary-value" id="summary-payer-name">-</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Nomor Transaksi:</span>
+            <span class="summary-value" id="summary-tx-id" style="font-family: monospace; font-size: 0.85rem;">-</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total Harus Dibayar:</span>
+            <span class="summary-value amount" id="summary-amount-display">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- QRIS Official Box Frame -->
+        <div class="qris-frame">
+          <div class="qris-header-banner">
+            <div class="qris-national-logo">
+              <span>QRIS</span>
+            </div>
+            <span class="qris-dana-logo-badge">DANA</span>
+          </div>
+
+          <div class="qris-merchant-name" id="qris-display-merchant">PEMBAYARAN DANA STORE</div>
+          <div class="qris-nmid" id="qris-display-nmid">NMID: ID1020268841902 • A01</div>
+
+          <!-- Dynamic QR Container (Canvas + Image Fallback) -->
+          <div class="qris-canvas-wrapper" id="qris-canvas-wrapper">
+            <canvas id="qris-canvas" width="240" height="240" class="qris-image"></canvas>
+            <img id="qris-image" class="qris-image hidden" src="" alt="QRIS DANA Payment Code" />
+          </div>
+
+          <p style="font-size: 0.775rem; color: var(--text-muted); font-weight: 600; margin-bottom: 8px;">
+            Dicetak Otomatis dengan Format Dynamic EMVCo QRIS DANA
+          </p>
+
+          <!-- Copy Payload & Download Buttons -->
+          <div class="qris-actions-wrapper">
+            <button type="button" id="btn-copy-qris" class="btn-secondary" style="font-size: 0.775rem; padding: 6px 12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              Salin String QRIS
+            </button>
+            <button type="button" id="btn-download-qris" class="btn-secondary" style="font-size: 0.775rem; padding: 6px 12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Unduh Gambar QRIS
+            </button>
+          </div>
+
+          <!-- QRIS String Inspector Box -->
+          <div class="qris-payload-preview">
+            <span style="font-size: 0.725rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">
+              Payload Dynamic QRIS (CRC16 CCITT Valid):
+            </span>
+            <div id="qris-payload-display" class="qris-payload-text">Menunggu pembuatan kode QRIS...</div>
+          </div>
+        </div>
+
+        <!-- Instruction Alert -->
+        <div class="qris-instruction-alert" style="margin-bottom: 20px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4"/>
+            <path d="M12 8h.01"/>
+          </svg>
+          <div>
+            <strong>Petunjuk Pembayaran QRIS:</strong>
+            <p style="margin-top: 4px; line-height: 1.4;">
+              Silakan pindai/scan QRIS di atas menggunakan aplikasi <strong>DANA</strong> atau e-wallet lainnya. 
+              Sistem akan <strong>tetap berada di halaman ini</strong> selama pembayaran belum dilakukan.
+            </p>
+          </div>
+        </div>
+
+        <!-- Live Scan Monitoring Box -->
+        <div style="background: #ffffff; border: 2px solid #0284c7; border-radius: var(--radius-md); padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; color: #0284c7; font-weight: 700; font-size: 0.95rem;">
+            <span class="pulse-dot" style="background: #0284c7;"></span>
+            <span id="scan-status-title">⏳ Menunggu Pembayaran QRIS DANA...</span>
+          </div>
+          
+          <p id="scan-status-desc" style="font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 0; line-height: 1.4;">
+            Sistem akan mendeteksi pembayaran secara otomatis. Setelah transfer masuk, halaman akan lanjut ke tahap selesai tanpa perlu klik tombol tambahan.
+          </p>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           HALAMAN 3: STATUS PEMBAYARAN BERHASIL
+           ========================================== -->
+      <section id="page-step-3" class="card hidden">
+        <div class="success-card">
+          <div class="success-icon-wrapper">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+
+          <h2 class="success-title">Pembayaran Berhasil!</h2>
+          <p class="success-subtitle">Terima kasih, transaksi Anda telah sukses diproses dan dicatat ke sistem.</p>
+
+          <div class="receipt-box">
+            <div class="summary-row">
+              <span class="summary-label">Nama Pembayar:</span>
+              <span class="summary-value" id="receipt-name">-</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Total Dibayar:</span>
+              <span class="summary-value amount" id="receipt-amount">Rp 0</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Tanggal Transaksi:</span>
+              <span class="summary-value" id="receipt-date">-</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Jam Pembayaran:</span>
+              <span class="summary-value" id="receipt-time">-</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Status:</span>
+              <span class="badge-success">Pembayaran Berhasil</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <button type="button" id="btn-new-payment" class="btn-primary" style="max-width: 260px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"/>
+                <path d="M12 5v14"/>
+              </svg>
+              Pembayaran Baru
+            </button>
+            <button type="button" onclick="scrollToHistory()" class="btn-secondary">
+              Lihat Rekap Transaksi ↓
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           REKAP TRANSAKSI / DAFTAR PEMBAYARAN
+           ========================================== -->
+      <section id="transaction-history-section" class="card">
+        <div class="history-header-actions">
+          <h2 class="card-title" style="margin-bottom: 0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            Daftar Rekap Transaksi
+          </h2>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <div id="admin-badge-indicator" class="admin-status-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span id="admin-badge-text">Proteksi Web Aktif</span>
+            </div>
+
+            <!-- Export Excel & CSV Buttons -->
+            <button type="button" id="btn-export-excel" class="btn-primary" style="background: #107c41; border-color: #0c5d31; font-size: 0.825rem; width: auto; padding: 8px 14px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              📊 Ekspor Excel
+            </button>
+
+            <button type="button" id="btn-export-csv" class="btn-secondary" style="border-color: var(--primary); color: var(--primary); background: var(--primary-light); font-size: 0.825rem; padding: 8px 12px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              📄 CSV
+            </button>
+
+            <!-- Reset Data Button with Lock -->
+            <button type="button" id="btn-clear-history" class="btn-secondary" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4); background: #fef2f2;" title="Hanya Akses Web Admin yang bisa mereset data">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span>Reset (Akses Web)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Metric Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Transaksi</div>
+            <div class="stat-value" id="stat-total-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Dana Terkumpul</div>
+            <div class="stat-value" id="stat-total-nominal" style="color: var(--primary);">Rp 0</div>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <div class="input-wrapper">
+            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input 
+              type="text" 
+              id="search-input" 
+              class="form-input" 
+              placeholder="Cari berdasarkan nama pembayar..." 
+              onkeyup="filterTransactions()"
+            />
+          </div>
+        </div>
+
+        <!-- Table View (Desktop & Tablet) -->
+        <div class="table-responsive">
+          <table class="transaction-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Pembayar</th>
+                <th>Total Dana</th>
+                <th>Tanggal</th>
+                <th>Jam</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="transaction-table-body">
+              <!-- Content rendered dynamically via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cards View (Mobile Viewport) -->
+        <div id="transaction-cards-mobile" class="cards-mobile">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Empty State View -->
+        <div id="empty-state" class="empty-state hidden">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <line x1="2" y1="10" x2="22" y2="10"/>
+          </svg>
+          <p style="font-weight: 600;">Belum ada data transaksi</p>
+          <p style="font-size: 0.825rem; margin-top: 4px;">Lakukan pembayaran pertama untuk mencatat data ke rekap.</p>
+        </div>
+      </section>
+
+      <!-- Developer Info Box: Production API & Webhook Architecture -->
+      <div class="dev-note-box">
+        <div class="dev-note-title" onclick="toggleDevNote()">
+          <span>🔧 Arsitektur Integrasi QRIS Real-World (API / Webhook Payment Gateway)</span>
+          <span id="dev-note-arrow">▼</span>
+        </div>
+        <div id="dev-note-content" class="dev-note-content">
+          <p>
+            Untuk beralih dari versi demo ke <strong>produksi nyata</strong>, struktur JavaScript (<code>app.js</code>) telah siap dihubungkan dengan server backend / Payment Gateway (seperti DANA Enterprise, Midtrans, Xendit, atau Tripay):
+          </p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li><strong>Generasi QRIS Dynamic:</strong> Panggil API backend <code>POST /api/qris/create</code> dengan payload <code>{ amount, customerName }</code> untuk mendapatkan String QRIS resmi dari Payment Gateway.</li>
+            <li><strong>Verifikasi Otomatis (Polling / Webhook):</strong> Front-end akan melakukan polling periodik <code>GET /api/qris/status/:txId</code> atau menerima event WebSocket. Ketika server menerima Webhook callback dari DANA, status otomatis diubah menjadi <code>Pembayaran Berhasil</code>.</li>
+            <li><strong>Keamanan:</strong> Verifikasi signature HMAC-SHA256 dilakukan di server Node.js/Express, bukan di browser client.</li>
+          </ul>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Container Toast Notification -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ==========================================
+       MODAL 1: VERIFIKASI PIN AKSES WEB ADMIN
+       ========================================== -->
+  <div id="modal-admin-pin" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+          <div class="modal-icon-badge warning">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Akses Web / Otentikasi Admin</h3>
+            <p class="modal-subtitle" id="pin-modal-desc">Masukkan PIN Akses Web untuk mengelola atau mereset rekap transaksi.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-x-close-pin" aria-label="Tutup Modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="admin-pin-input" class="form-label">PIN Akses Web Admin <span style="color: var(--danger);">*</span></label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input 
+              type="password" 
+              id="admin-pin-input" 
+              class="form-input" 
+              placeholder="Masukkan 4 digit PIN admin" 
+              maxlength="10" 
+              autocomplete="off"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              enterkeyhint="go"
+            />
+          </div>
+          <div id="pin-error-msg" class="error-message">PIN Akses Web yang Anda masukkan salah!</div>
+          <p style="font-size: 0.775rem; color: var(--text-muted); margin-top: 8px;">
+            🔒 Default PIN Akses Web: <strong>1234</strong> (Dapat diubah di Pengaturan Admin).
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btn-cancel-pin" class="btn-secondary">Batal</button>
+        <button type="button" id="btn-submit-pin" class="btn-primary" style="width: auto; min-width: 140px;">
+          <span>Verifikasi PIN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: PENGATURAN MERCHANT QRIS DANA
+       ========================================== -->
+  <div id="modal-merchant-settings" class="modal-backdrop hidden">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+          <div class="modal-icon-badge primary">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Pengaturan Merchant QRIS DANA Asli</h3>
+            <p class="modal-subtitle">Kelola identitas merchant DANA & PIN Akses Web Admin</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-x-close-settings" aria-label="Tutup Modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="merchant-config-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="cfg-qris-mode" class="form-label">Mode Transaksi QRIS</label>
+            <select id="cfg-qris-mode" class="form-input" style="padding-left: 16px; font-weight: 600;">
+              <option value="dynamic">⚡ Dinamis (Nominal Otomatis Terisi di Aplikasi DANA)</option>
+              <option value="static">🏷️ Statis Murni (Pembeli Ketik Nominal Manual di DANA)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cfg-merchant-name" class="form-label">Nama Merchant DANA (Toko / Usaha)</label>
+            <input type="text" id="cfg-merchant-name" class="form-input" placeholder="Contoh: PEMBAYARAN DANA STORE" style="padding-left: 16px;" />
+          </div>
+
+          <div class="form-group">
+            <label for="cfg-nmid" class="form-label">NMID (National Merchant ID)</label>
+            <input type="text" id="cfg-nmid" class="form-input" placeholder="Contoh: ID1020268841902" style="padding-left: 16px;" />
+          </div>
+
+          <div class="form-group">
+            <label for="cfg-city" class="form-label">Kota Merchant</label>
+            <input type="text" id="cfg-city" class="form-input" placeholder="Contoh: JAKARTA" style="padding-left: 16px;" />
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="cfg-qris-base" class="form-label" style="margin-bottom: 0;">String / Payload Base QRIS DANA Asli (EMVCo TLV)</label>
+              <button type="button" id="btn-reset-qris-base" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; border-color: var(--border-color);">
+                ↺ Reset ke Default DANA
+              </button>
+            </div>
+            <textarea id="cfg-qris-base" class="form-input" rows="3" style="padding-left: 16px; font-family: monospace; font-size: 0.8rem;" placeholder="Payload EMVCo QRIS Asli (misal: 000201010211...)"></textarea>
+            <div id="qris-validation-status" style="margin-top: 6px; padding: 8px 12px; border-radius: 6px; font-size: 0.775rem; background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border-color);">
+              Memeriksa format string QRIS...
+            </div>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);" />
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="cfg-new-pin" class="form-label">Ganti PIN Akses Web Admin (Kosongkan jika tidak ingin diubah)</label>
+            <input type="password" id="cfg-new-pin" class="form-input" placeholder="Masukkan PIN baru (misal: 5678)" style="padding-left: 16px;" maxlength="10" />
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" id="btn-lock-admin" class="btn-secondary" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3); font-size: 0.8rem;" onclick="lockAdminAccess()">
+          🔒 Kunci Akses Admin
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="btn-close-settings" class="btn-secondary">Batal</button>
+          <button type="button" id="btn-save-settings" class="btn-primary" style="width: auto; min-width: 140px;">
+            Simpan Pengaturan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript App Script -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="./app.js" type="module"></script>
+</body>
+</html>

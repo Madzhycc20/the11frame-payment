@@ -1,0 +1,8 @@
+{
+  "name": "Remix Pembayaran QRIS DANA",
+  "description": "Sistem Pembayaran Dynamic QRIS DANA Asli dengan Proteksi Akses Web Admin untuk Rekap Transaksi",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
