@@ -12,6 +12,12 @@
   
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="./style.css" />
+  <style>
+    /* Admin-only controls are hidden for non-admin users to prevent tampering */
+    .admin-only { display: none !important; }
+    /* When admin is unlocked, reveal admin-only elements */
+    .admin-unlocked .admin-only { display: initial !important; }
+  </style>
 </head>
 <body>
 
@@ -224,12 +230,6 @@
           </div>
 
           <!-- QRIS String Inspector Box -->
-          <div class="qris-payload-preview">
-            <span style="font-size: 0.725rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">
-              Payload Dynamic QRIS (CRC16 CCITT Valid):
-            </span>
-            <div id="qris-payload-display" class="qris-payload-text">Menunggu pembuatan kode QRIS...</div>
-          </div>
         </div>
 
         <!-- Instruction Alert -->

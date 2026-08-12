@@ -585,17 +585,65 @@ function copyQRISPayload() {
 // Download QRIS Canvas Card Image
 function downloadQRISImage() {
   const canvasEl = document.getElementById('qris-canvas');
-  if (!canvasEl) return;
+  const imgFallback = document.getElementById('qris-image');
+  const txId = activeTransaction ? activeTransaction.id : 'CARD';
+  const filename = `QRIS_DANA_${txId}.png`;
 
   try {
-    const link = document.createElement('a');
-    link.download = `QRIS_DANA_${activeTransaction ? activeTransaction.id : 'CARD'}.png`;
-    link.href = canvasEl.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Gambar QRIS berhasil diunduh!', 'success');
+    // If the canvas is visible and contains the QR, export a high-DPI image with white background
+    if (canvasEl && !canvasEl.classList.contains('hidden')) {
+      const width = canvasEl.width || 240;
+      const height = canvasEl.height || 240;
+      const ratio = window.devicePixelRatio || 1;
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = Math.round(width * ratio);
+      tempCanvas.height = Math.round(height * ratio);
+      tempCanvas.style.width = `${width}px`;
+      tempCanvas.style.height = `${height}px`;
+      const ctx = tempCanvas.getContext('2d');
+
+      // Fill white background to avoid transparency rendering as dark in some viewers
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      // Draw the original canvas onto the high-DPI canvas
+      ctx.drawImage(canvasEl, 0, 0, tempCanvas.width, tempCanvas.height);
+
+      const dataUrl = tempCanvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Gambar QRIS berhasil diunduh!', 'success');
+      return;
+    }
+
+    // If canvas is not available but fallback image is shown, try to fetch and download it
+    if (imgFallback && !imgFallback.classList.contains('hidden') && imgFallback.src) {
+      fetch(imgFallback.src, { mode: 'cors' }).then(res => res.blob()).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Gambar QRIS berhasil diunduh!', 'success');
+      }).catch(err => {
+        // If CORS prevents download, open in new tab as fallback
+        console.warn('Fetch fallback image failed, opening in new tab:', err);
+        window.open(imgFallback.src, '_blank');
+        showToast('Tidak bisa mengunduh langsung karena kebijakan CORS; gambar dibuka di tab baru.', 'info');
+      });
+      return;
+    }
+
+    showToast('Tidak ada gambar QRIS untuk diunduh.', 'error');
   } catch (err) {
+    console.error('Gagal mengunduh gambar QRIS:', err);
     showToast('Gagal mengunduh gambar QRIS.', 'error');
   }
 }
@@ -973,6 +1021,15 @@ function updateAdminBadgeUI() {
     if (indicator) indicator.classList.remove('unlocked');
     if (text) text.textContent = 'Proteksi Web Aktif';
     if (headerLabel) headerLabel.textContent = 'Akses Web Admin 🔒';
+  }
+
+  // Toggle a body-level class so CSS can reveal admin-only elements safely
+  try {
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.classList.toggle('admin-unlocked', !!isAdminUnlocked);
+    }
+  } catch (e) {
+    // ignore if DOM not ready
   }
 }
 
